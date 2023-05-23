@@ -8,7 +8,7 @@ app.use(cors());
 
 const server = http.createServer(app);
 
-const address = "172.20.10.2"
+const address = "10.10.241.46"
 const port = 3001;
 
 const io = new Server(server, {
@@ -82,10 +82,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("send_message", (data) => {
-    socket.to(data.room).emit("receive_message", data);
-  });
-
   socket.on("disconnect", () => {
     if (prevRooms[socket.id]) {
       deleteRoom(prevRooms[socket.id]);
@@ -98,17 +94,8 @@ io.on("connection", (socket) => {
   socket.on("send_move", (data) => {
     console.log(data);
     console.log("emitting");
-    socket.broadcast.emit("receive_move", data);
     console.log("done something");
-    // socket.to(data.room).emit("receive_move", data);
-  });
-
-  socket.on("send_color", (data) => {
-    console.log(data);
-    console.log("emitting");
-    socket.broadcast.emit("receive_move", data);
-    console.log("done something");
-    // socket.to(data.room).emit("receive_move", data);
+    socket.to(data.room).emit("receive_move", data);
   });
 });
 
