@@ -17,9 +17,9 @@ const io = new Server(server, {
 
 // Track room occupancy
 const roomOccupancy = {};
+const prevRooms = {};
 
-const deleteRoom = (socket, room) => {
-  socket.leave(room);
+const deleteRoom = (room) => {
   roomOccupancy[room] = roomOccupancy[room] - 1;
 
   // Update room occupancy for all remaining clients in the room
@@ -27,31 +27,33 @@ const deleteRoom = (socket, room) => {
     room,
     occupancy: roomOccupancy[room],
   });
+  // Remove the room from roomOccupancy when no users left
+  if (roomOccupancy[room] === 0) {
+    delete roomOccupancy[room];
+  }
 };
 
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
+  prevRooms[socket] = null;
 
   socket.on("join_room", (data) => {
-    const rooms = Array.from(socket.rooms.values());
-    const previousRoom = rooms.length > 1 ? rooms[1] : null;
-
-    console.log(previousRoom);
-
-    if (previousRoom) {
+    if (prevRooms[socket]) {
       if (data === previousRoom) {
         console.log("User already in the room");
         return;
       }
 
-      deleteRoom(socket, previousRoom);
+      deleteRoom(previousRoom);
     }
 
     const room = data;
-    const numSocketsInRoom = roomOccupancy[room] ? roomOccupancy[room] : 0;
+    const numSocketsInRoom = roomOccupancy[room] || 0;
     if (numSocketsInRoom < 2 && !socket.rooms.has(room)) {
       socket.join(room);
+      prevRooms[socket] = room;
       roomOccupancy[room] = numSocketsInRoom + 1;
+      previousRoom = room;
 
       console.log(`User ${socket.id} joined room ${room}`);
 
@@ -75,13 +77,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    const rooms = Array.from(socket.rooms.values());
-    const previousRoom = rooms.length > 1 ? rooms[1] : null;
-    console.log(previousRoom);
-    if (previousRoom) {
-      deleteRoom(socket, previousRoom);
+    console.log(prevRooms[socket]);
+    if (prevRooms[socket]) {
+      deleteRoom(prevRooms[socket]);
     }
-
+    delete prevRooms[socket];
+    console.log(prevRooms);
     console.log(`User Disconnected: ${socket.id}`);
   });
 });
