@@ -8,9 +8,12 @@ app.use(cors());
 
 const server = http.createServer(app);
 
+const address = "10.10.241.46"
+const port = 3001;
+
 const io = new Server(server, {
   cors: {
-    origin: "http://10.10.241.217:3000",
+    origin: "http://"+address+":3000",
     methods: ["GET", "POST"],
   },
 });
@@ -85,8 +88,17 @@ io.on("connection", (socket) => {
     console.log(prevRooms);
     console.log(`User Disconnected: ${socket.id}`);
   });
+
+  // Multiplayer
+  socket.on("send_move", (data) => {
+    console.log(data);
+    console.log("emitting");
+    socket.broadcast.emit("receive_move", data);
+    console.log("done something");
+    // socket.to(data.room).emit("receive_move", data);
+  });
 });
 
-server.listen(3001, "10.10.241.217", () => {
+server.listen(port, address, () => {
   console.log("SERVER IS RUNNING");
 });
