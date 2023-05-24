@@ -31,11 +31,11 @@ let statistic = [
 ];
 
 const address = "mpz-chess-ui.onrender.com";
-const port = 3001;
+const port = 443;
 
 const io = new Server(server, {
   cors: {
-    origin: "https://" + address + ":3000",
+    origin: "https://" + address,
     methods: ["GET", "POST"],
   },
 });
