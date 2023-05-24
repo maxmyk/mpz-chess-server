@@ -3,6 +3,7 @@ const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const e = require("express");
 
 app.use(cors());
 
@@ -20,6 +21,7 @@ const io = new Server(server, {
 
 const roomOccupancy = {};
 const prevRooms = {};
+const savedMoves = {};
 
 const deleteRoom = (room) => {
   roomOccupancy[room] = roomOccupancy[room] - 1;
@@ -94,8 +96,32 @@ io.on("connection", (socket) => {
   socket.on("send_move", (data) => {
     console.log(data);
     console.log("emitting");
-    console.log("done something");
+    console.log(data.room);
+    savedMoves[data.room] = data;
     socket.to(data.room).emit("receive_move", data);
+    console.log("done something");
+  });
+
+  socket.on("send_message", (data) => {
+    console.log(data);
+    console.log("emitting");
+    console.log(data.room);
+    socket.to(data.room).emit("receive_message", data.message);
+    console.log("done something");
+  });
+
+  socket.on("get_move", (data) => {
+    console.log(data);
+    console.log("emitting");
+    console.log(data.room);
+    // Check if there is a saved move
+    if (savedMoves[data.room]) {
+      socket.to(data.room).emit("receive_move", savedMoves[data.room]);
+    }
+    else {
+      socket.to(data.room).emit("receive_move", "start");
+    }
+    console.log("done something");
   });
 });
 
