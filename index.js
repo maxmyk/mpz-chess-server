@@ -3,18 +3,39 @@ const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const e = require("express");
 
 app.use(cors());
 
 const server = http.createServer(app);
+let statistic = [
+  {
+    label: "Games",
+    value: 0,
+  },
+  {
+    label: "Draws",
+    value: 0,
+  },
+  {
+    label: "Black Wins",
+    value: 0,
+  },
+  {
+    label: "White Wins",
+    value: 0,
+  },
+  {
+    label: "Moves Played",
+    value: 0,
+  }
+];
 
-const address = "10.10.241.46"
+const address = "10.10.241.46";
 const port = 3001;
 
 const io = new Server(server, {
   cors: {
-    origin: "http://"+address+":3000",
+    origin: "http://" + address + ":3000",
     methods: ["GET", "POST"],
   },
 });
@@ -98,6 +119,7 @@ io.on("connection", (socket) => {
     console.log("emitting");
     console.log(data.room);
     savedMoves[data.room] = data;
+    statistic[4].value+=0.5
     socket.to(data.room).emit("receive_move", data);
     console.log("done something");
   });
@@ -110,18 +132,31 @@ io.on("connection", (socket) => {
     console.log("done something");
   });
 
-  socket.on("get_move", (data) => {
+  socket.on("get_stats", (data) => {
     console.log(data);
-    console.log("emitting");
     console.log(data.room);
-    // Check if there is a saved move
+    if (data.message === "black" || data.message === "white") {
+      statistic[0].value++;
+    }
+    if (data.message === "draw") {
+      statistic[1].value++;
+    } else if (data.message === "black") {
+      statistic[2].value++;
+    } else if (data.message === "white") {
+      statistic[3].value++;
+    }
+
     if (savedMoves[data.room]) {
       socket.to(data.room).emit("receive_move", savedMoves[data.room]);
-    }
-    else {
+    } else {
       socket.to(data.room).emit("receive_move", "start");
     }
     console.log("done something");
+  });
+  socket.on("get_statistic", () => {
+    console.log("Statistic");
+    socket.emit("receive_statistic", statistic);
+    console.log("Sent");
   });
 });
 
