@@ -135,15 +135,15 @@ io.on("connection", (socket) => {
   socket.on("get_stats", (data) => {
     console.log(data);
     console.log(data.room);
-    if (data.message === "black" || data.message === "white") {
-      statistic[0].value++;
+    if (data.message === "black" || data.message === "white" || data.message === "draw") {
+      statistic[0].value+=0.5;
     }
     if (data.message === "draw") {
-      statistic[1].value++;
+      statistic[1].value+=0.5;
     } else if (data.message === "black") {
-      statistic[2].value++;
+      statistic[2].value+=0.5;
     } else if (data.message === "white") {
-      statistic[3].value++;
+      statistic[3].value+=0.5;
     }
 
     if (savedMoves[data.room]) {
