@@ -30,12 +30,12 @@ let statistic = [
   }
 ];
 
-const address = "10.10.241.46";
+const address = "mpz-chess-ui.onrender.com";
 const port = 3001;
 
 const io = new Server(server, {
   cors: {
-    origin: "http://" + address + ":3000",
+    origin: "https://" + address + ":3000",
     methods: ["GET", "POST"],
   },
 });
